@@ -1,0 +1,45 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    echo 'terraform version: '
+    terraform version
+    echo 'present working directory:'
+    pwd
+    ls -lrt
+    export
+  displayName: get info
+       
+
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    backendServiceArm: 'NBS-SS-EngSpoke-AKS-Dev(5)(014e2a5b-7ec6-4877-883b-0abac7046ef7)'
+    backendAzureRmResourceGroupName: 'MainRG'
+    backendAzureRmStorageAccountName: 'mittfstate'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: 'demo.azure.tfstate'
+
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    commandOptions: '-lock=false -input=false'
+    environmentServiceNameAzureRM: 'NBS-SS-EngSpoke-AKS-Dev(3)(014e2a5b-7ec6-4877-883b-0abac7046ef7)'
+
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    commandOptions: '-lock=false -input=false'
+    environmentServiceNameAzureRM: 'NBS-SS-EngSpoke-AKS-Dev(6)(014e2a5b-7ec6-4877-883b-0abac7046ef7)'
